@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Patient {
+  id        Int      @id @default(autoincrement())
+  name      String
+  nik       String?
+  createdAt DateTime @default(now()) @map("created_at")
+  queues    Queue[]
+
+  @@map("patients")
+}
+
+model Service {
+  id          Int        @id @default(autoincrement())
+  name        String
+  code        String
+  openingTime String     @map("opening_time")
+  closingTime String     @map("closing_time")
+  isActive    Boolean    @default(true) @map("is_active")
+  staff       Staff[]
+  schedules   Schedule[]
+  queues      Queue[]
+
+  @@map("services")
+}
+
+model Staff {
+  id        Int        @id @default(autoincrement())
+  name      String
+  type      String
+  serviceId Int        @map("service_id")
+  service   Service    @relation(fields: [serviceId], references: [id])
+  schedules Schedule[]
+  queues    Queue[]
+
+  @@map("staff")
+}
+
+model Schedule {
+  id        Int     @id @default(autoincrement())
+  staffId   Int     @map("staff_id")
+  serviceId Int     @map("service_id")
+  day       String
+  startTime String  @map("start_time")
+  endTime   String  @map("end_time")
+  staff     Staff   @relation(fields: [staffId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  @@map("schedules")
+}
+
+model Queue {
+  id          Int      @id @default(autoincrement())
+  queueNumber String   @map("queue_number")
+  patientId   Int      @map("patient_id")
+  serviceId   Int      @map("service_id")
+  staffId     Int?     @map("staff_id")
+  queueDate   DateTime @map("queue_date")
+  status      String   @default("MENUNGGU")
+  createdAt   DateTime @default(now()) @map("created_at")
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  service     Service  @relation(fields: [serviceId], references: [id])
+  staff       Staff?   @relation(fields: [staffId], references: [id])
+
+  @@map("queues")
+}
+
+model User {
+  id           Int    @id @default(autoincrement())
+  name         String
+  username     String @unique
+  passwordHash String @map("password_hash")
+  role         String
+
+  @@map("users")
+}

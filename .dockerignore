@@ -1,0 +1,29 @@
+# dependencies
+node_modules
+
+# next.js
+.next
+out
+
+# prisma generated client (regenerated on every build)
+app/generated
+
+# local env / secrets — never bake into the image
+.env
+.env.*
+!.env.example
+
+# git / ide / tooling metadata
+.git
+.gitignore
+.claude
+.windsurf
+.agents
+.vscode
+
+# misc
+*.log
+*.tsbuildinfo
+next-env.d.ts
+skills-lock.json
+npm-debug.log*
