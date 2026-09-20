@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Brand } from "@/components/Brand";
 import { logout } from "@/actions/auth";
 import { currentUser } from "@/lib/auth";
 
@@ -6,11 +7,9 @@ export async function Header() {
   const user = await currentUser();
 
   return (
-    <header className="w-full border-b border-emerald-100 bg-white">
+    <header className="w-full border-b border-blue-100 bg-white">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-        <Link href="/" className="text-base font-extrabold tracking-tight text-emerald-800 md:text-lg">
-          Klinik Pratama Sahaduta
-        </Link>
+        <Brand />
 
         <nav className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-slate-600 md:text-sm">
           <Link href="/layanan" className="hover:text-emerald-700">

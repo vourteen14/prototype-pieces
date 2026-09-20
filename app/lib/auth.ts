@@ -87,3 +87,14 @@ export async function guardAdmin() {
   if (user.role !== "ADMIN") redirect("/petugas");
   return user;
 }
+
+// Area pendaftaran pasien: bila staff (petugas/admin) sedang login,
+// langkah-langkah pendaftaran diarahkan ke halaman inti masing-masing.
+export async function guardPatientArea(): Promise<void> {
+  const user = await currentUser();
+  if (!user) return;
+
+  if (user.role === "ADMIN") redirect("/admin");
+  if (user.role === "PETUGAS") redirect("/petugas");
+  redirect("/");
+}

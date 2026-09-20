@@ -45,7 +45,9 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0 \
     NEXT_TELEMETRY_DISABLED=1 \
-    NODE_PATH=/usr/local/lib/node_modules
+    NODE_PATH=/usr/local/lib/node_modules \
+    TZ=Asia/Jakarta \
+    CLINIC_TZ=Asia/Jakarta
 
 # tini: proper signal/pid-1 handling. openssl: required by Prisma engines.
 # The Prisma CLI (for `migrate deploy`) + dotenv (required by prisma7.config.ts)

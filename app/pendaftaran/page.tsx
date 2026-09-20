@@ -1,8 +1,11 @@
 import { PendaftaranForm } from "@/components/PendaftaranForm";
 import { Card, StepHeader } from "@/components/ui";
 import { Footer, Header } from "@/components/nav";
+import { guardPatientArea } from "@/lib/auth";
 
-export default function PendaftaranPage() {
+export default async function PendaftaranPage() {
+  await guardPatientArea();
+
   return (
     <>
       <Header />

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Footer, Header } from "@/components/nav";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { Card, QueueStatusBadge } from "@/components/ui";
+import { Footer, Header } from "@/components/nav";
 import { prisma } from "@/lib/prisma";
+import { guardPatientArea } from "@/lib/auth";
 import { estimateWaitMinutes, getWaitingCount } from "@/lib/queue";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +14,8 @@ export default async function AntreanPage({
 }: {
   params: Promise<{ queueId: string }>;
 }) {
+  await guardPatientArea();
+
   const { queueId: queueIdParam } = await params;
   const queueId = Number(queueIdParam);
 
@@ -74,6 +78,8 @@ export default async function AntreanPage({
             <p className="mt-8 text-lg font-semibold text-slate-700">
               Silakan menunggu hingga nomor antrean Anda dipanggil.
             </p>
+
+            <AutoRefresh />
 
             <Link
               href="/"

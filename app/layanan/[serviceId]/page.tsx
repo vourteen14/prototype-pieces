@@ -7,6 +7,7 @@ import { ambilAntrean } from "@/actions/pasien";
 import { prisma } from "@/lib/prisma";
 import { getNextSchedule, getOnDutyStaff } from "@/lib/queue";
 import { serviceStatus } from "@/lib/time";
+import { guardPatientArea } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,8 @@ export default async function LayananDetailPage({
   params: Promise<{ serviceId: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  await guardPatientArea();
+
   const { serviceId: serviceIdParam } = await params;
   const { error } = await searchParams;
   const serviceId = Number(serviceIdParam);
