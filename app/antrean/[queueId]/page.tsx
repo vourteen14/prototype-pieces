@@ -1,11 +1,11 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { AutoRefresh } from "@/components/AutoRefresh";
-import { Card, QueueStatusBadge } from "@/components/ui";
+import { cookies } from "next/headers";
+import { notFound, redirect } from "next/navigation";
+import { QueueMonitor } from "@/components/QueueMonitor";
+import { Card } from "@/components/ui";
 import { Footer, Header } from "@/components/nav";
 import { prisma } from "@/lib/prisma";
 import { guardPatientArea } from "@/lib/auth";
-import { estimateWaitMinutes, getWaitingCount } from "@/lib/queue";
+import { clearQueueCookie } from "@/lib/queue-cookie";
 
 export const dynamic = "force-dynamic";
 
@@ -30,8 +30,15 @@ export default async function AntreanPage({
 
   if (!queue) notFound();
 
-  const waitingAhead = await getWaitingCount(queue.serviceId, queue.id);
-  const estimate = estimateWaitMinutes(waitingAhead);
+  // Antrean sudah selesai/dibatalkan: buang cookie tiket lalu kembali ke
+  // beranda agar pasien memulai pendaftaran baru.
+  if (queue.status === "SELESAI" || queue.status === "BATAL") {
+    const store = await cookies();
+    if (Number(store.get("queueId")?.value) === queueId) {
+      await clearQueueCookie();
+    }
+    redirect("/");
+  }
 
   return (
     <>
@@ -65,28 +72,13 @@ export default async function AntreanPage({
                   {queue.staff ? queue.staff.name : "Belum ada"}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500">Status</span>
-                <QueueStatusBadge status={queue.status} />
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Estimasi waktu tunggu</span>
-                <span className="font-bold text-slate-900">± {estimate} menit</span>
-              </div>
+
+              <QueueMonitor queueId={queue.id} initialStatus={queue.status} />
             </div>
 
-            <p className="mt-8 text-lg font-semibold text-slate-700">
-              Silakan menunggu hingga nomor antrean Anda dipanggil.
+            <p className="mt-8 text-sm text-slate-400">
+              Jika halaman ditutup dan dibuka lagi, Anda akan otomatis kembali ke tiket ini.
             </p>
-
-            <AutoRefresh />
-
-            <Link
-              href="/"
-              className="mt-6 inline-block rounded-2xl border-2 border-emerald-700 px-6 py-3 text-lg font-bold text-emerald-700 hover:bg-emerald-50"
-            >
-              Kembali ke Beranda
-            </Link>
           </div>
         </Card>
       </main>

@@ -5,12 +5,18 @@ import { Card, ServiceStatusBadge, StepHeader } from "@/components/ui";
 import { Footer, Header } from "@/components/nav";
 import { prisma } from "@/lib/prisma";
 import { guardPatientArea } from "@/lib/auth";
+import { getActiveQueue } from "@/lib/queue-cookie";
 import { serviceStatus, todayDayName } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
 export default async function LayananPage() {
   await guardPatientArea();
+
+  const activeQueue = await getActiveQueue();
+  if (activeQueue) {
+    redirect(`/antrean/${activeQueue.id}`);
+  }
 
   const cookieStore = await cookies();
   const patientId = cookieStore.get("patientId")?.value;

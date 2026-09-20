@@ -77,6 +77,7 @@ export async function currentUser() {
 export async function guardPetugas() {
   const user = await currentUser();
   if (!user) redirect("/petugas/login");
+  if (user.role === "DOKTER") redirect("/dokter");
   if (user.role !== "PETUGAS" && user.role !== "ADMIN") redirect("/");
   return user;
 }
@@ -84,11 +85,33 @@ export async function guardPetugas() {
 export async function guardAdmin() {
   const user = await currentUser();
   if (!user) redirect("/admin/login");
-  if (user.role !== "ADMIN") redirect("/petugas");
+  if (user.role === "DOKTER") redirect("/dokter");
+  if (user.role === "PETUGAS") redirect("/petugas");
+  if (user.role !== "ADMIN") redirect("/");
   return user;
 }
 
-// Area pendaftaran pasien: bila staff (petugas/admin) sedang login,
+// Area dokter: hanya role DOKTER yang terhubung ke baris Staff yang boleh
+// masuk. Mengembalikan user beserta data staff (dan layanan/poli) miliknya.
+export async function guardDokter() {
+  const user = await currentUser();
+  if (!user) redirect("/dokter/login");
+  if (user.role !== "DOKTER") {
+    if (user.role === "ADMIN") redirect("/admin/layanan");
+    if (user.role === "PETUGAS") redirect("/petugas");
+    redirect("/");
+  }
+
+  const staff = await prisma.staff.findUnique({
+    where: { userId: user.id },
+    include: { service: true },
+  });
+  if (!staff) redirect("/petugas/login");
+
+  return { user, staff };
+}
+
+// Area pendaftaran pasien: bila staff (petugas/admin/dokter) sedang login,
 // langkah-langkah pendaftaran diarahkan ke halaman inti masing-masing.
 export async function guardPatientArea(): Promise<void> {
   const user = await currentUser();
@@ -96,5 +119,6 @@ export async function guardPatientArea(): Promise<void> {
 
   if (user.role === "ADMIN") redirect("/admin");
   if (user.role === "PETUGAS") redirect("/petugas");
+  if (user.role === "DOKTER") redirect("/dokter");
   redirect("/");
 }

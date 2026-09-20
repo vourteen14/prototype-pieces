@@ -18,6 +18,9 @@ export async function Header() {
           <Link href="/petugas" className="hover:text-emerald-700">
             Dashboard Petugas
           </Link>
+          <Link href="/dokter" className="hover:text-emerald-700">
+            Dashboard Dokter
+          </Link>
           <Link href="/admin" className="hover:text-emerald-700">
             Admin
           </Link>

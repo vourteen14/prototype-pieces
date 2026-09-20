@@ -27,11 +27,15 @@ export async function login(
 
   await createSession(user.id, user.role);
 
+  const baseRedirect =
+    user.role === "ADMIN"
+      ? "/admin/layanan"
+      : user.role === "DOKTER"
+        ? "/dokter"
+        : "/petugas";
+
   const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "";
-  redirect(
-    safeNext ||
-      (user.role === "ADMIN" ? "/admin/layanan" : "/petugas"),
-  );
+  redirect(safeNext || baseRedirect);
 }
 
 export async function logout() {

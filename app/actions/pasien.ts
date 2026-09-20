@@ -4,6 +4,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createQueueNumber, getOnDutyStaff } from "@/lib/queue";
+import {
+  getActiveQueue,
+  setActiveQueueCookie,
+} from "@/lib/queue-cookie";
 import { serviceStatus } from "@/lib/time";
 
 export type DaftarState = {
@@ -43,6 +47,13 @@ export async function ambilAntrean(formData: FormData) {
     redirect("/pendaftaran");
   }
 
+  // Pasien yang sudah punya antrean aktif diarahkan kembali ke tikernya,
+  // bukan membuat antrean baru.
+  const activeQueue = await getActiveQueue();
+  if (activeQueue) {
+    redirect(`/antrean/${activeQueue.id}`);
+  }
+
   const service = await prisma.service.findUnique({ where: { id: serviceId } });
 
   if (!service || !service.isActive) {
@@ -67,6 +78,8 @@ export async function ambilAntrean(formData: FormData) {
       status: "MENUNGGU",
     },
   });
+
+  await setActiveQueueCookie(queue.id);
 
   redirect(`/antrean/${queue.id}`);
 }

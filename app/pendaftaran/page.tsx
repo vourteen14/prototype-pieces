@@ -1,10 +1,17 @@
 import { PendaftaranForm } from "@/components/PendaftaranForm";
 import { Card, StepHeader } from "@/components/ui";
 import { Footer, Header } from "@/components/nav";
+import { redirect } from "next/navigation";
 import { guardPatientArea } from "@/lib/auth";
+import { getActiveQueue } from "@/lib/queue-cookie";
 
 export default async function PendaftaranPage() {
   await guardPatientArea();
+
+  const activeQueue = await getActiveQueue();
+  if (activeQueue) {
+    redirect(`/antrean/${activeQueue.id}`);
+  }
 
   return (
     <>

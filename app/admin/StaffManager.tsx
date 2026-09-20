@@ -12,6 +12,7 @@ export type StaffRow = {
   serviceId: number;
   serviceName: string;
   schedules: number;
+  loginUsername?: string | null;
 };
 
 export type ServiceOption = { id: number; name: string };
@@ -20,7 +21,14 @@ const JENIS = ["Dokter Umum", "Dokter Gigi", "Bidan", "Analis Lab", "Petugas"];
 
 type ModalState =
   | { mode: "create" }
-  | { mode: "edit"; id: number; name: string; type: string; serviceId: number }
+  | {
+      mode: "edit";
+      id: number;
+      name: string;
+      type: string;
+      serviceId: number;
+      loginUsername?: string | null;
+    }
   | null;
 
 export function StaffManager({
@@ -34,12 +42,16 @@ export function StaffManager({
   const [name, setName] = useState("");
   const [type, setType] = useState(JENIS[0]);
   const [serviceId, setServiceId] = useState<number | "">("");
+  const [loginUsername, setLoginUsername] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
   const [pending, startTransition] = useTransition();
 
   const openCreate = () => {
     setName("");
     setType(JENIS[0]);
     setServiceId(services[0]?.id ?? "");
+    setLoginUsername("");
+    setLoginPassword("");
     setModal({ mode: "create" });
   };
 
@@ -47,7 +59,16 @@ export function StaffManager({
     setName(row.name);
     setType(row.type);
     setServiceId(row.serviceId);
-    setModal({ mode: "edit", id: row.id, name: row.name, type: row.type, serviceId: row.serviceId });
+    setLoginUsername(row.loginUsername ?? "");
+    setLoginPassword("");
+    setModal({
+      mode: "edit",
+      id: row.id,
+      name: row.name,
+      type: row.type,
+      serviceId: row.serviceId,
+      loginUsername: row.loginUsername ?? null,
+    });
   };
 
   const save = () => {
@@ -56,6 +77,8 @@ export function StaffManager({
     data.append("name", name);
     data.append("type", type);
     data.append("serviceId", String(serviceId));
+    data.append("loginUsername", loginUsername.trim());
+    data.append("loginPassword", loginPassword);
 
     startTransition(async () => {
       if (modal?.mode === "edit") {
@@ -110,6 +133,11 @@ export function StaffManager({
                   <span className="rounded-full bg-slate-100 px-3 py-0.5 text-xs font-bold text-slate-600">
                     {row.schedules} hari jaga
                   </span>
+                  {row.loginUsername ? (
+                    <span className="mt-1 block w-fit rounded-full bg-blue-100 px-3 py-0.5 text-xs font-bold text-blue-800">
+                      Login: {row.loginUsername}
+                    </span>
+                  ) : null}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-2">
@@ -155,6 +183,11 @@ export function StaffManager({
               <span className="shrink-0 rounded-full bg-slate-100 px-3 py-0.5 text-xs font-bold text-slate-600">
                 {row.schedules} hari jaga
               </span>
+              {row.loginUsername ? (
+                <span className="shrink-0 rounded-full bg-blue-100 px-3 py-0.5 text-xs font-bold text-blue-800">
+                  Login: {row.loginUsername}
+                </span>
+              ) : null}
             </div>
             <div className="mt-3 flex gap-2">
               <button
@@ -209,6 +242,31 @@ export function StaffManager({
               ))}
             </SelectInput>
           </Field>
+          <div className="border-t border-slate-200 pt-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">
+              Akun Login Dokter (opsional)
+            </p>
+            <div className="space-y-4">
+              <Field label="Username">
+                <TextInput
+                  value={loginUsername}
+                  onChange={(e) => setLoginUsername(e.target.value)}
+                  placeholder="Contoh: drbudi"
+                />
+              </Field>
+              <Field label="Kata Sandi (kosong = dokter123)">
+                <TextInput
+                  value={loginPassword}
+                  type="password"
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="Kata sandi baru / biarkan kosong"
+                />
+              </Field>
+            </div>
+            <p className="mt-2 text-xs text-slate-400">
+              Jika username dikosongkan, akun login untuk orang ini dihapus.
+            </p>
+          </div>
           <div className="flex gap-3 pt-2">
             <button
               type="button"

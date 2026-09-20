@@ -11,7 +11,7 @@ export default async function AdminStaffPage() {
   const [services, staffList] = await Promise.all([
     prisma.service.findMany({ orderBy: { id: "asc" }, select: { id: true, name: true } }),
     prisma.staff.findMany({
-      include: { service: true, _count: { select: { schedules: true } } },
+      include: { service: true, user: { select: { username: true } }, _count: { select: { schedules: true } } },
       orderBy: { serviceId: "asc" },
     }),
   ]);
@@ -23,6 +23,7 @@ export default async function AdminStaffPage() {
     serviceId: staff.serviceId,
     serviceName: staff.service.name,
     schedules: staff._count.schedules,
+    loginUsername: staff.user?.username ?? null,
   }));
 
   return (

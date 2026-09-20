@@ -1,9 +1,12 @@
 "use server";
 
+import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+
+const DEFAULT_DOKTER_PASSWORD = "dokter123";
 
 export async function tambahLayanan(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
@@ -64,10 +67,27 @@ export async function tambahStaff(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const type = String(formData.get("type") ?? "").trim();
   const serviceId = Number(formData.get("serviceId"));
+  const loginUsername = String(formData.get("loginUsername") ?? "").trim();
+  const loginPassword = String(formData.get("loginPassword") ?? "");
 
   if (!name || !type || !serviceId) return;
 
-  await prisma.staff.create({ data: { name, type, serviceId } });
+  if (loginUsername) {
+    const user = await prisma.user.create({
+      data: {
+        name,
+        username: loginUsername,
+        passwordHash: await bcrypt.hash(loginPassword || DEFAULT_DOKTER_PASSWORD, 10),
+        role: "DOKTER",
+      },
+    });
+
+    await prisma.staff.create({
+      data: { name, type, serviceId, userId: user.id },
+    });
+  } else {
+    await prisma.staff.create({ data: { name, type, serviceId } });
+  }
 
   revalidatePath("/admin");
 }
@@ -77,19 +97,58 @@ export async function editStaff(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const type = String(formData.get("type") ?? "").trim();
   const serviceId = Number(formData.get("serviceId"));
+  const loginUsername = String(formData.get("loginUsername") ?? "").trim();
+  const loginPassword = String(formData.get("loginPassword") ?? "");
 
   if (!id || !name || !type || !serviceId) return;
 
-  await prisma.staff.update({
+  const current = await prisma.staff.findUnique({
     where: { id },
-    data: { name, type, serviceId },
+    include: { user: true },
   });
+  if (!current) return;
+
+  if (loginUsername) {
+    let userId = current.userId;
+    if (current.userId) {
+      await prisma.user.update({
+        where: { id: current.userId },
+        data: {
+          name,
+          username: loginUsername,
+          ...(loginPassword ? { passwordHash: await bcrypt.hash(loginPassword, 10) } : {}),
+        },
+      });
+    } else {
+      const user = await prisma.user.create({
+        data: {
+          name,
+          username: loginUsername,
+          passwordHash: await bcrypt.hash(loginPassword || DEFAULT_DOKTER_PASSWORD, 10),
+          role: "DOKTER",
+        },
+      });
+      userId = user.id;
+    }
+
+    await prisma.staff.update({ where: { id }, data: { name, type, serviceId, userId } });
+  } else {
+    if (current.userId) {
+      await prisma.user.delete({ where: { id: current.userId } });
+    }
+    await prisma.staff.update({ where: { id }, data: { name, type, serviceId } });
+  }
 
   revalidatePath("/admin/staff");
 }
 
 export async function hapusStaff(formData: FormData) {
   const id = Number(formData.get("id"));
+
+  const staff = await prisma.staff.findUnique({ where: { id }, select: { userId: true } });
+  if (staff?.userId) {
+    await prisma.user.delete({ where: { id: staff.userId } });
+  }
 
   await prisma.schedule.deleteMany({ where: { staffId: id } });
   await prisma.staff.delete({ where: { id } });

@@ -39,6 +39,8 @@ model Staff {
   service   Service    @relation(fields: [serviceId], references: [id])
   schedules Schedule[]
   queues    Queue[]
+  user      User?      @relation(fields: [userId], references: [id])
+  userId    Int?       @unique @map("user_id")
 
   @@map("staff")
 }
@@ -78,6 +80,7 @@ model User {
   username     String @unique
   passwordHash String @map("password_hash")
   role         String
+  staff        Staff?
 
   @@map("users")
 }

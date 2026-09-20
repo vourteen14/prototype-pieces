@@ -93,6 +93,32 @@ async function main() {
     });
   }
 
+  // Akun login untuk setiap dokter / petugas medis di data awal, terhubung ke
+  // baris Staff-nya. Username: "dokter", "dokter2", ... ; kata sandi "dokter123".
+  const allStaff = await prisma.staff.findMany({ orderBy: { id: "asc" } });
+  let doctorNo = 1;
+  for (const staff of allStaff) {
+    if (!staff.type.startsWith("Dokter")) continue;
+
+    const username = doctorNo === 1 ? "dokter" : `dokter${doctorNo}`;
+    const user = await prisma.user.create({
+      data: {
+        name: staff.name,
+        username,
+        passwordHash: await bcrypt.hash("dokter123", 10),
+        role: "DOKTER",
+      },
+    });
+
+    await prisma.staff.update({
+      where: { id: staff.id },
+      data: { userId: user.id },
+    });
+
+    console.log(`  login dokter: ${username} -> ${staff.name}`);
+    doctorNo += 1;
+  }
+
   console.log("Seed selesai: layanan, staff, jadwal, dan pengguna berhasil dibuat.");
 }
 

@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Card } from "@/components/ui";
 import { Footer, Header } from "@/components/nav";
 import { guardPatientArea } from "@/lib/auth";
+import { getActiveQueue } from "@/lib/queue-cookie";
 
 const LAYANAN_PREVIEW = [
   { name: "Poli Umum", jam: "08.00 - 16.00" },
@@ -12,6 +14,12 @@ const LAYANAN_PREVIEW = [
 
 export default async function HomePage() {
   await guardPatientArea();
+
+  // Pasien dengan antrean aktif langsung diarahkan kembali ke tiketnya.
+  const activeQueue = await getActiveQueue();
+  if (activeQueue) {
+    redirect(`/antrean/${activeQueue.id}`);
+  }
 
   return (
     <>

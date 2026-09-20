@@ -6,6 +6,7 @@ import { BigButton, Card, ServiceStatusBadge, StepHeader } from "@/components/ui
 import { ambilAntrean } from "@/actions/pasien";
 import { prisma } from "@/lib/prisma";
 import { getNextSchedule, getOnDutyStaff } from "@/lib/queue";
+import { getActiveQueue } from "@/lib/queue-cookie";
 import { serviceStatus } from "@/lib/time";
 import { guardPatientArea } from "@/lib/auth";
 
@@ -19,6 +20,11 @@ export default async function LayananDetailPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   await guardPatientArea();
+
+  const activeQueue = await getActiveQueue();
+  if (activeQueue) {
+    redirect(`/antrean/${activeQueue.id}`);
+  }
 
   const { serviceId: serviceIdParam } = await params;
   const { error } = await searchParams;
