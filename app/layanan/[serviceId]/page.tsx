@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Footer, Header } from "@/components/nav";
 import { BigButton, Card, ServiceStatusBadge, StepHeader } from "@/components/ui";
 import { ambilAntrean } from "@/actions/pasien";
 import { prisma } from "@/lib/prisma";
 import { getNextSchedule, getOnDutyStaff } from "@/lib/queue";
-import { getActiveQueue } from "@/lib/queue-cookie";
+import { getActiveQueue, getPatientId } from "@/lib/queue-cookie";
 import { serviceStatus } from "@/lib/time";
 import { guardPatientArea } from "@/lib/auth";
 
@@ -30,8 +29,7 @@ export default async function LayananDetailPage({
   const { error } = await searchParams;
   const serviceId = Number(serviceIdParam);
 
-  const cookieStore = await cookies();
-  const patientId = Number(cookieStore.get("patientId")?.value);
+  const patientId = await getPatientId();
 
   if (!patientId) {
     redirect("/pendaftaran");

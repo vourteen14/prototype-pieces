@@ -1,12 +1,13 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createQueueNumber, getOnDutyStaff } from "@/lib/queue";
 import {
   getActiveQueue,
+  getPatientId,
   setActiveQueueCookie,
+  setPatientIdCookie,
 } from "@/lib/queue-cookie";
 import { serviceStatus } from "@/lib/time";
 
@@ -31,8 +32,7 @@ export async function daftarPasien(
     data: { name: nama, nik },
   });
 
-  const cookieStore = await cookies();
-  cookieStore.set("patientId", String(patient.id));
+  await setPatientIdCookie(patient.id);
 
   redirect("/layanan");
 }
@@ -40,8 +40,7 @@ export async function daftarPasien(
 export async function ambilAntrean(formData: FormData) {
   const serviceId = Number(formData.get("serviceId"));
 
-  const cookieStore = await cookies();
-  const patientId = Number(cookieStore.get("patientId")?.value);
+  const patientId = await getPatientId();
 
   if (!patientId) {
     redirect("/pendaftaran");

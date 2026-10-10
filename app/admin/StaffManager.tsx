@@ -81,12 +81,14 @@ export function StaffManager({
     data.append("loginPassword", loginPassword);
 
     startTransition(async () => {
-      if (modal?.mode === "edit") {
-        await editStaff(data);
-      } else {
-        await tambahStaff(data);
-      }
+      const result =
+        modal?.mode === "edit" ? await editStaff(data) : await tambahStaff(data);
       setModal(null);
+      if (result.generatedPassword) {
+        window.alert(
+          `Akun login dibuat.\nUsername: ${loginUsername.trim()}\nKata sandi: ${result.generatedPassword}\n\nCatat kata sandi ini sekarang, tidak akan ditampilkan lagi.`,
+        );
+      }
     });
   };
 
@@ -254,7 +256,7 @@ export function StaffManager({
                   placeholder="Contoh: drbudi"
                 />
               </Field>
-              <Field label="Kata Sandi (kosong = dokter123)">
+              <Field label="Kata Sandi (kosong = dibuat otomatis)">
                 <TextInput
                   value={loginPassword}
                   type="password"
@@ -264,6 +266,7 @@ export function StaffManager({
               </Field>
             </div>
             <p className="mt-2 text-xs text-slate-400">
+              Jika dikosongkan, sistem membuatkan kata sandi acak dan menampilkannya sekali setelah disimpan.
               Jika username dikosongkan, akun login untuk orang ini dihapus.
             </p>
           </div>

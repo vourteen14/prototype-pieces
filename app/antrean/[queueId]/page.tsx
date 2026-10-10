@@ -5,7 +5,7 @@ import { Card } from "@/components/ui";
 import { Footer, Header } from "@/components/nav";
 import { prisma } from "@/lib/prisma";
 import { guardPatientArea } from "@/lib/auth";
-import { clearQueueCookie } from "@/lib/queue-cookie";
+import { clearQueueCookie, getPatientId } from "@/lib/queue-cookie";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +29,14 @@ export default async function AntreanPage({
   });
 
   if (!queue) notFound();
+
+  // Tiket ini hanya boleh dilihat oleh pasien pemiliknya, dicocokkan lewat
+  // cookie "patientId" yang ditandatangani. Tanpa ini, siapa pun bisa
+  // menebak-nebak queueId berurutan untuk melihat data pasien lain.
+  const patientId = await getPatientId();
+  if (!patientId || queue.patientId !== patientId) {
+    notFound();
+  }
 
   // Antrean sudah selesai/dibatalkan: buang cookie tiket lalu kembali ke
   // beranda agar pasien memulai pendaftaran baru.

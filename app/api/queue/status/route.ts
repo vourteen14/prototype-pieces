@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { clearQueueCookie } from "@/lib/queue-cookie";
+import { clearQueueCookie, getPatientId } from "@/lib/queue-cookie";
 import { endOfToday, startOfToday } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
@@ -11,8 +10,7 @@ export const dynamic = "force-dynamic";
 // kembali ke beranda saat membuka aplikasi lagi.
 export async function GET(request: Request) {
   const queueId = Number(new URL(request.url).searchParams.get("queueId"));
-  const store = await cookies();
-  const patientId = Number(store.get("patientId")?.value);
+  const patientId = await getPatientId();
 
   if (!queueId || !patientId) {
     return NextResponse.json({ error: "missing_identity" }, { status: 400 });

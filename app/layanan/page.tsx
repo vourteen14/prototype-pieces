@@ -1,11 +1,10 @@
-import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Card, ServiceStatusBadge, StepHeader } from "@/components/ui";
 import { Footer, Header } from "@/components/nav";
 import { prisma } from "@/lib/prisma";
 import { guardPatientArea } from "@/lib/auth";
-import { getActiveQueue } from "@/lib/queue-cookie";
+import { getActiveQueue, getPatientId } from "@/lib/queue-cookie";
 import { serviceStatus, todayDayName } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
@@ -18,8 +17,7 @@ export default async function LayananPage() {
     redirect(`/antrean/${activeQueue.id}`);
   }
 
-  const cookieStore = await cookies();
-  const patientId = cookieStore.get("patientId")?.value;
+  const patientId = await getPatientId();
 
   if (!patientId) {
     redirect("/pendaftaran");
